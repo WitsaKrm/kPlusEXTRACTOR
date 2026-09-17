@@ -8,14 +8,15 @@ import { parseKPlusEmail, Transaction } from "@/lib/kplusParser";
 export default async function Home({
   searchParams,
 }: {
-  searchParams: { refresh?: string };
+  searchParams: Promise<{ refresh?: string }>;
 }) {
   const session = await getServerSession(authOptions);
   
   let allTransactions: Transaction[] = [];
   let groupedTransactions: Record<string, Transaction[]> = {};
 
-  const forceRefresh = searchParams?.refresh === "true";
+  const params = await searchParams;
+  const forceRefresh = params?.refresh === "true";
 
   if ((session as any)?.accessToken) {
     const rawEmails = await fetchKPlusEmails((session as any).accessToken as string, forceRefresh);
