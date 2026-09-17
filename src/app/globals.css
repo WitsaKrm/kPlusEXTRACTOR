@@ -237,14 +237,17 @@ body {
 
   .menu-item {
     flex-direction: column;
-    gap: 4px;
-    padding: 0.5rem 0.75rem;
-    font-size: 0.625rem;
-    min-width: 64px;
+    gap: 2px;
+    padding: 0.5rem 0.25rem;
+    font-size: 0;          /* hide text labels */
+    min-width: 52px;
+    max-width: 80px;
     text-align: center;
     border-left: none !important;
     border-top: 3px solid transparent;
     white-space: nowrap;
+    overflow: hidden;
+    justify-content: center;
   }
 
   .menu-item.active,
@@ -256,6 +259,8 @@ body {
 
   .menu-item svg {
     flex-shrink: 0;
+    width: 22px;
+    height: 22px;
   }
 
   /* Main content gets bottom padding to avoid being covered by bottom nav */
