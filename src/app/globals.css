@@ -189,3 +189,156 @@ body {
   justify-content: center;
   min-height: 80vh;
 }
+
+/* =============================
+   RESPONSIVE - Mobile & Tablet
+   ============================= */
+
+/* Tablet: 768px and below */
+@media (max-width: 768px) {
+  .layout-wrapper {
+    flex-direction: column;
+  }
+
+  /* Sidebar becomes a fixed bottom nav on mobile */
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    flex-direction: row;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
+  }
+
+  .sidebar-header {
+    display: none;
+  }
+
+  .sidebar-menu {
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    padding: 0;
+    width: 100%;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .sidebar-menu::-webkit-scrollbar {
+    display: none;
+  }
+
+  .sidebar-menu > div:first-child {
+    display: none; /* hide section labels */
+  }
+
+  .menu-item {
+    flex-direction: column;
+    gap: 4px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.625rem;
+    min-width: 64px;
+    text-align: center;
+    border-left: none !important;
+    border-top: 3px solid transparent;
+    white-space: nowrap;
+  }
+
+  .menu-item.active,
+  .menu-item:hover {
+    border-left: none !important;
+    border-top: 3px solid var(--sidebar-active);
+    background-color: rgba(255,255,255,0.08);
+  }
+
+  .menu-item svg {
+    flex-shrink: 0;
+  }
+
+  /* Main content gets bottom padding to avoid being covered by bottom nav */
+  .main-wrapper {
+    padding-bottom: 70px;
+  }
+
+  /* Topbar */
+  .topbar {
+    padding: 0 1rem;
+    height: auto;
+    min-height: 56px;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .topbar-title {
+    font-size: 0.9rem;
+    flex: 1;
+  }
+
+  /* Content area */
+  .content {
+    padding: 1rem;
+  }
+
+  /* Summary cards stack */
+  .summary-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .stat-value {
+    font-size: 1.75rem;
+  }
+
+  /* Cards */
+  .card {
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  /* Charts: stack vertically */
+  div[style*="grid-template-columns: 1fr 1fr"] {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  /* Tables: scroll horizontally */
+  .data-table {
+    font-size: 0.75rem;
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: 0.5rem 0.625rem;
+  }
+
+  /* Scrollable table container */
+  .card > div[style*="overflow"] {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Small mobile: 480px and below */
+@media (max-width: 480px) {
+  .topbar-title {
+    font-size: 0.8rem;
+  }
+
+  .topbar span[style*="text-secondary"] {
+    display: none;
+  }
+
+  .stat-value {
+    font-size: 1.5rem;
+  }
+
+  .content {
+    padding: 0.75rem;
+  }
+}
