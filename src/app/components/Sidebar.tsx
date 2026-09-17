@@ -36,7 +36,7 @@ export default function Sidebar({
           Expense Summary
         </div>
         
-        <div style={{ padding: "1.5rem 1.5rem 0.5rem", fontSize: "0.75rem", textTransform: "uppercase", color: "var(--sidebar-text)", fontWeight: 700 }}>
+        <div className="sidebar-label" style={{ padding: "1.5rem 1.5rem 0.5rem", fontSize: "0.75rem", textTransform: "uppercase", color: "var(--sidebar-text)", fontWeight: 700 }}>
           Monthly Reports
         </div>
         {months.map(month => (
@@ -50,7 +50,7 @@ export default function Sidebar({
           </div>
         ))}
 
-        <div style={{ padding: "1.5rem 1.5rem 0.5rem", fontSize: "0.75rem", textTransform: "uppercase", color: "var(--sidebar-text)", fontWeight: 700, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div className="sidebar-label" style={{ padding: "1.5rem 1.5rem 0.5rem", fontSize: "0.75rem", textTransform: "uppercase", color: "var(--sidebar-text)", fontWeight: 700, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <span>My Groups</span>
           <button onClick={handleManageGroup} style={{ background: "none", border: "none", color: "var(--sidebar-active)", cursor: "pointer" }} title="Manage Groups">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>

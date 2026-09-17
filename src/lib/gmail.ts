@@ -39,8 +39,8 @@ export async function fetchKPlusEmails(accessToken: string, forceRefresh: boolea
       const messages = response.data.messages || [];
       const emails: { id: string, body: string }[] = [];
 
-      // Process in chunks of 10 to speed up fetching and avoid 10s serverless timeout
-      const chunkSize = 10;
+      // Process in chunks of 3 to avoid Gmail quota limits
+      const chunkSize = 3;
       for (let i = 0; i < messages.length; i += chunkSize) {
         const chunk = messages.slice(i, i + chunkSize);
         
@@ -80,9 +80,9 @@ export async function fetchKPlusEmails(accessToken: string, forceRefresh: boolea
           if (res) emails.push(res);
         });
 
-        // Small delay between chunks to avoid hitting Google's rate limits
+        // Delay between chunks to respect Gmail's rate limits
         if (i + chunkSize < messages.length) {
-          await new Promise((resolve) => setTimeout(resolve, 100));
+          await new Promise((resolve) => setTimeout(resolve, 300));
         }
       }
 

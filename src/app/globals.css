@@ -231,8 +231,8 @@ body {
     display: none;
   }
 
-  .sidebar-menu > div:first-child {
-    display: none; /* hide section labels */
+  .sidebar-label {
+    display: none; /* hide section labels on mobile */
   }
 
   .menu-item {
