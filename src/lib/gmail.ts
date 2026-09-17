@@ -33,7 +33,7 @@ export async function fetchKPlusEmails(accessToken: string, forceRefresh: boolea
       const response = await gmail.users.messages.list({
         userId: "me",
         q: query,
-        maxResults: 60, // 3 months of KPLUS notifications, ~20/month max
+        maxResults: 100, // 3 months of KPLUS notifications, ~20/month max
       });
 
       const messages = response.data.messages || [];
