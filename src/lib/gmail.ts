@@ -39,33 +39,50 @@ export async function fetchKPlusEmails(accessToken: string, forceRefresh: boolea
       const messages = response.data.messages || [];
       const emails: { id: string, body: string }[] = [];
 
-      for (const msg of messages) {
-        if (msg.id) {
-          // Increase delay to 200ms to guarantee we don't hit the per-minute limit
-          await new Promise((resolve) => setTimeout(resolve, 200));
+      // Process in chunks of 10 to speed up fetching and avoid 10s serverless timeout
+      const chunkSize = 10;
+      for (let i = 0; i < messages.length; i += chunkSize) {
+        const chunk = messages.slice(i, i + chunkSize);
+        
+        const chunkPromises = chunk.map(async (msg) => {
+          if (!msg.id) return null;
+          try {
+            const messageDetail = await gmail.users.messages.get({
+              userId: "me",
+              id: msg.id,
+            });
 
-          const messageDetail = await gmail.users.messages.get({
-            userId: "me",
-            id: msg.id,
-          });
+            const payload = messageDetail.data.payload;
+            let bodyData = "";
 
-          const payload = messageDetail.data.payload;
-          let bodyData = "";
+            if (payload?.parts) {
+              const textPart = payload.parts.find((p) => p.mimeType === "text/plain");
+              const htmlPart = payload.parts.find((p) => p.mimeType === "text/html");
 
-          if (payload?.parts) {
-            const textPart = payload.parts.find((p) => p.mimeType === "text/plain");
-            const htmlPart = payload.parts.find((p) => p.mimeType === "text/html");
-
-            if (textPart?.body?.data) {
-              bodyData = Buffer.from(textPart.body.data, "base64").toString("utf8");
-            } else if (htmlPart?.body?.data) {
-              bodyData = Buffer.from(htmlPart.body.data, "base64").toString("utf8");
+              if (textPart?.body?.data) {
+                bodyData = Buffer.from(textPart.body.data, "base64").toString("utf8");
+              } else if (htmlPart?.body?.data) {
+                bodyData = Buffer.from(htmlPart.body.data, "base64").toString("utf8");
+              }
+            } else if (payload?.body?.data) {
+              bodyData = Buffer.from(payload.body.data, "base64").toString("utf8");
             }
-          } else if (payload?.body?.data) {
-            bodyData = Buffer.from(payload.body.data, "base64").toString("utf8");
-          }
 
-          emails.push({ id: msg.id, body: bodyData });
+            return { id: msg.id, body: bodyData };
+          } catch (err) {
+            console.error("Error fetching message", msg.id, err);
+            return null;
+          }
+        });
+
+        const results = await Promise.all(chunkPromises);
+        results.forEach(res => {
+          if (res) emails.push(res);
+        });
+
+        // Small delay between chunks to avoid hitting Google's rate limits
+        if (i + chunkSize < messages.length) {
+          await new Promise((resolve) => setTimeout(resolve, 100));
         }
       }
 
