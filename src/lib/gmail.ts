@@ -33,57 +33,42 @@ export async function fetchKPlusEmails(accessToken: string, forceRefresh: boolea
       const response = await gmail.users.messages.list({
         userId: "me",
         q: query,
-        maxResults: 500,
+        maxResults: 60, // 3 months of KPLUS notifications, ~20/month max
       });
 
       const messages = response.data.messages || [];
       const emails: { id: string, body: string }[] = [];
 
-      // Process in chunks of 3 to avoid Gmail quota limits
-      const chunkSize = 3;
-      for (let i = 0; i < messages.length; i += chunkSize) {
-        const chunk = messages.slice(i, i + chunkSize);
-        
-        const chunkPromises = chunk.map(async (msg) => {
-          if (!msg.id) return null;
-          try {
-            const messageDetail = await gmail.users.messages.get({
-              userId: "me",
-              id: msg.id,
-            });
+      // Sequential fetching (1 at a time) to avoid Gmail quota limits
+      for (const msg of messages) {
+        if (!msg.id) continue;
+        try {
+          const messageDetail = await gmail.users.messages.get({
+            userId: "me",
+            id: msg.id,
+          });
 
-            const payload = messageDetail.data.payload;
-            let bodyData = "";
+          const payload = messageDetail.data.payload;
+          let bodyData = "";
 
-            if (payload?.parts) {
-              const textPart = payload.parts.find((p) => p.mimeType === "text/plain");
-              const htmlPart = payload.parts.find((p) => p.mimeType === "text/html");
-
-              if (textPart?.body?.data) {
-                bodyData = Buffer.from(textPart.body.data, "base64").toString("utf8");
-              } else if (htmlPart?.body?.data) {
-                bodyData = Buffer.from(htmlPart.body.data, "base64").toString("utf8");
-              }
-            } else if (payload?.body?.data) {
-              bodyData = Buffer.from(payload.body.data, "base64").toString("utf8");
+          if (payload?.parts) {
+            const textPart = payload.parts.find((p) => p.mimeType === "text/plain");
+            const htmlPart = payload.parts.find((p) => p.mimeType === "text/html");
+            if (textPart?.body?.data) {
+              bodyData = Buffer.from(textPart.body.data, "base64").toString("utf8");
+            } else if (htmlPart?.body?.data) {
+              bodyData = Buffer.from(htmlPart.body.data, "base64").toString("utf8");
             }
-
-            return { id: msg.id, body: bodyData };
-          } catch (err) {
-            console.error("Error fetching message", msg.id, err);
-            return null;
+          } else if (payload?.body?.data) {
+            bodyData = Buffer.from(payload.body.data, "base64").toString("utf8");
           }
-        });
 
-        const results = await Promise.all(chunkPromises);
-        results.forEach(res => {
-          if (res) emails.push(res);
-        });
-
-        // Delay between chunks to respect Gmail's rate limits
-        if (i + chunkSize < messages.length) {
-          await new Promise((resolve) => setTimeout(resolve, 300));
+          emails.push({ id: msg.id, body: bodyData });
+        } catch (err) {
+          console.error("Error fetching message", msg.id, err);
         }
+        // 300ms between each request = ~3.3 req/s = ~17 units/s (well under 250 limit)
+        await new Promise((resolve) => setTimeout(resolve, 300));
       }
 
       // Save to cache
