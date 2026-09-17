@@ -3,11 +3,11 @@ import { google } from "googleapis";
 // Simple in-memory cache to prevent hitting Gmail API rate limits during dev reloads
 const emailCache: { [key: string]: { timestamp: number, data: { id: string, body: string }[] } | undefined } = {};
 const fetchPromise: { [key: string]: Promise<{ id: string, body: string }[]> | undefined } = {};
-const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
+const CACHE_TTL = Infinity; // Cache forever — only cleared when user presses Refresh
 
 export async function fetchKPlusEmails(accessToken: string, forceRefresh: boolean = false): Promise<{ id: string, body: string }[]> {
-  // Return cached data if available, fresh, and not forcing a refresh
-  if (!forceRefresh && emailCache[accessToken] && Date.now() - emailCache[accessToken].timestamp < CACHE_TTL) {
+  // Return cached data unless user explicitly requested a refresh
+  if (!forceRefresh && emailCache[accessToken]) {
     return emailCache[accessToken].data;
   }
 
