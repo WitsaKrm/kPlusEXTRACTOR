@@ -247,16 +247,17 @@ body {
   .menu-item {
     flex-direction: column;
     gap: 2px;
-    padding: 0.4rem 0.5rem;
+    padding: 0.4rem 0.6rem;
     font-size: 0.55rem;
     font-weight: 700;
     letter-spacing: 0.03em;
     min-width: 52px;
-    max-width: 80px;
+    width: auto;            /* fit content - no cut-off */
+    flex-shrink: 0;         /* prevent squeezing */
     text-align: center;
     border-left: none !important;
     border-top: 3px solid transparent;
-    overflow: hidden;
+    overflow: visible;
     justify-content: center;
     white-space: nowrap;
   }
