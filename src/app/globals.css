@@ -190,6 +190,15 @@ body {
   min-height: 80vh;
 }
 
+/* Hide mobile-only elements on desktop */
+.menu-short-label {
+  display: none;
+}
+.mobile-add-group {
+  display: none;
+}
+
+
 /* =============================
    RESPONSIVE - Mobile & Tablet
    ============================= */
@@ -238,16 +247,18 @@ body {
   .menu-item {
     flex-direction: column;
     gap: 2px;
-    padding: 0.5rem 0.25rem;
-    font-size: 0;          /* hide text labels */
+    padding: 0.4rem 0.5rem;
+    font-size: 0.55rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
     min-width: 52px;
     max-width: 80px;
     text-align: center;
     border-left: none !important;
     border-top: 3px solid transparent;
-    white-space: nowrap;
     overflow: hidden;
     justify-content: center;
+    white-space: nowrap;
   }
 
   .menu-item.active,
@@ -259,8 +270,28 @@ body {
 
   .menu-item svg {
     flex-shrink: 0;
-    width: 22px;
-    height: 22px;
+    width: 20px;
+    height: 20px;
+  }
+
+  /* Desktop labels: hidden on mobile */
+  .menu-label {
+    display: none !important;
+  }
+
+  /* Short labels: shown only on mobile */
+  .menu-short-label {
+    display: block;
+    font-size: 0.55rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    color: var(--sidebar-text);
+    line-height: 1;
+  }
+
+  /* Add Group button: only show on mobile */
+  .mobile-add-group {
+    display: flex;
   }
 
   /* Main content gets bottom padding to avoid being covered by bottom nav */
