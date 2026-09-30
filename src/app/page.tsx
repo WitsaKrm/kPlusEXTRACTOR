@@ -66,7 +66,8 @@ export default async function Home({
   let fetchedEmailCount = 0;
 
   if (!session || !(session as any)?.accessToken) {
-    return <SessionExpiredLoginCard />;
+    console.warn("No active Google session or Gmail token. Redirecting to sign-in.");
+    redirect("/api/auth/signin?callbackUrl=%2F");
   }
 
   try {
@@ -92,8 +93,8 @@ export default async function Home({
       }
     });
   } catch (error) {
-    console.error("Gmail fetch failed, redirecting to sign-in:", error);
-    return <SessionExpiredLoginCard />;
+    console.error("Gmail fetch failed or token expired. Redirecting to sign-in:", error);
+    redirect("/api/auth/signin?callbackUrl=%2F");
   }
 
   return (
