@@ -12,9 +12,11 @@ interface DashboardLayoutProps {
   email: string | null | undefined;
   groupedTransactions: Record<string, Transaction[]>;
   allTransactions: Transaction[];
+  fetchedEmailCount: number;
+  transactionCount: number;
 }
 
-export default function DashboardLayout({ email, groupedTransactions, allTransactions }: DashboardLayoutProps) {
+export default function DashboardLayout({ email, groupedTransactions, allTransactions, fetchedEmailCount, transactionCount }: DashboardLayoutProps) {
   const months = Object.keys(groupedTransactions).sort((a, b) => b.localeCompare(a));
   const [currentView, setCurrentView] = useState<string>(months.length > 0 ? months[0] : "expense_summary");
   const [customCategories, setCustomCategories] = useState<Record<string, string>>({});
@@ -226,6 +228,8 @@ export default function DashboardLayout({ email, groupedTransactions, allTransac
           months={months}
           formatMonth={formatMonth}
           email={email}
+          fetchedEmailCount={fetchedEmailCount}
+          transactionCount={transactionCount}
         />
 
         <main className="content">

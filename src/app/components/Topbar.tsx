@@ -1,4 +1,5 @@
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import LoginButton from './LoginButton';
 
 interface TopbarProps {
@@ -10,6 +11,8 @@ interface TopbarProps {
   months: string[];
   formatMonth: (yyyy_mm: string) => string;
   email: string | null | undefined;
+  fetchedEmailCount: number;
+  transactionCount: number;
 }
 
 export default function Topbar({
@@ -20,8 +23,13 @@ export default function Topbar({
   setSelectedGroupMonth,
   months,
   formatMonth,
-  email
+  email,
+  fetchedEmailCount,
+  transactionCount
 }: TopbarProps) {
+  const router = useRouter();
+  const hasData = fetchedEmailCount > 0 || transactionCount > 0;
+
   return (
     <header className="topbar">
       <div className="topbar-title" style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
@@ -52,10 +60,26 @@ export default function Topbar({
         )}
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+        <span
+          style={{
+            fontSize: "0.75rem",
+            color: hasData ? "#166534" : "#991b1b",
+            backgroundColor: hasData ? "#dcfce7" : "#fee2e2",
+            border: `1px solid ${hasData ? "#86efac" : "#fca5a5"}`,
+            borderRadius: "999px",
+            padding: "4px 10px",
+            fontWeight: 600,
+            whiteSpace: "nowrap",
+          }}
+          title={hasData ? `${fetchedEmailCount} emails loaded • ${transactionCount} transactions parsed` : "No Gmail data loaded yet. Check login or Gmail access permissions."}
+        >
+          {hasData ? `Loaded ${fetchedEmailCount} emails • ${transactionCount} transactions` : "No data loaded yet"}
+        </span>
+
         {email && (
           <button 
             onClick={() => {
-              window.location.href = "/?refresh=true";
+              router.push("/?refresh=true");
             }}
             title="Force fetch new emails from Gmail"
             style={{ background: "var(--sidebar-active)", color: "white", border: "none", padding: "6px 12px", borderRadius: "4px", fontSize: "0.875rem", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px" }}

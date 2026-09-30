@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "./api/auth/[...nextauth]/route";
 import LoginButton from "./components/LoginButton";
@@ -18,10 +19,17 @@ export default async function Home({
   const params = await searchParams;
   const forceRefresh = params?.refresh === "true";
 
-  if ((session as any)?.accessToken) {
+  let fetchedEmailCount = 0;
+
+  if (!session || !(session as any)?.accessToken) {
+    redirect("/api/auth/signin?callbackUrl=%2F");
+  }
+
+  try {
     const rawEmails = await fetchKPlusEmails((session as any).accessToken as string, forceRefresh);
+    fetchedEmailCount = rawEmails.length;
     allTransactions = rawEmails.map((email) => parseKPlusEmail(email.body, email.id)).filter(tx => tx.transaction_date !== null);
-    
+
     // Sort transactions by date descending
     allTransactions.sort((a, b) => {
       const dateA = new Date(`${a.transaction_date}T${a.transaction_time || '00:00:00'}`);
@@ -39,10 +47,9 @@ export default async function Home({
         groupedTransactions[monthKey].push(tx);
       }
     });
-  }
-
-  if (!session) {
-    return <LoginButton />;
+  } catch (error) {
+    console.error("Gmail fetch failed, redirecting to sign-in:", error);
+    redirect("/api/auth/signin?callbackUrl=%2F");
   }
 
   return (
@@ -50,6 +57,8 @@ export default async function Home({
       email={session.user?.email} 
       allTransactions={allTransactions} 
       groupedTransactions={groupedTransactions} 
+      fetchedEmailCount={fetchedEmailCount}
+      transactionCount={allTransactions.length}
     />
   );
 }
