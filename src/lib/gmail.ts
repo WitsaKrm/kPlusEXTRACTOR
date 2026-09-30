@@ -5,6 +5,7 @@ const emailCache: { [key: string]: { timestamp: number, data: { id: string, body
 const fetchPromise: { [key: string]: Promise<{ id: string, body: string }[]> | undefined } = {};
 const fetchAttempts: { [key: string]: number } = {};
 const GMAIL_TIMEOUT_MS = 20000;
+const GMAIL_CONCURRENCY = 5;
 
 function withTimeout<T>(promise: Promise<T>, timeoutMs: number, label: string): Promise<T> {
   let timeoutId: NodeJS.Timeout | undefined;
@@ -74,43 +75,51 @@ export async function fetchKPlusEmails(accessToken: string, forceRefresh: boolea
       const emails: { id: string, body: string }[] = [];
       const seenMessageIds = new Set<string>();
 
-      // Sequential fetching (1 at a time) to avoid Gmail quota limits
       for (const msg of messages) {
         if (!msg.id || seenMessageIds.has(msg.id)) continue;
         seenMessageIds.add(msg.id);
-
-        try {
-          const messageDetail = await withTimeout(
-            gmail.users.messages.get({
-              userId: "me",
-              id: msg.id,
-            }),
-            GMAIL_TIMEOUT_MS,
-            `Gmail message ${msg.id}`
-          );
-
-          const payload = messageDetail.data.payload;
-          let bodyData = "";
-
-          if (payload?.parts) {
-            const textPart = payload.parts.find((p) => p.mimeType === "text/plain");
-            const htmlPart = payload.parts.find((p) => p.mimeType === "text/html");
-            if (textPart?.body?.data) {
-              bodyData = Buffer.from(textPart.body.data, "base64").toString("utf8");
-            } else if (htmlPart?.body?.data) {
-              bodyData = Buffer.from(htmlPart.body.data, "base64").toString("utf8");
-            }
-          } else if (payload?.body?.data) {
-            bodyData = Buffer.from(payload.body.data, "base64").toString("utf8");
-          }
-
-          emails.push({ id: msg.id, body: bodyData });
-        } catch (error) {
-          console.error("Error fetching message", msg.id, error);
-        }
-        // 100ms between each request for faster loading while staying under Gmail quota limits
-        await new Promise((resolve) => setTimeout(resolve, 100));
       }
+
+      const uniqueMessageIds = Array.from(seenMessageIds);
+      const queue = [...uniqueMessageIds];
+      const workers = Array.from({ length: Math.min(GMAIL_CONCURRENCY, queue.length || 1) }, async () => {
+        while (queue.length > 0) {
+          const nextId = queue.shift();
+          if (!nextId) continue;
+
+          try {
+            const messageDetail = await withTimeout(
+              gmail.users.messages.get({
+                userId: "me",
+                id: nextId,
+              }),
+              GMAIL_TIMEOUT_MS,
+              `Gmail message ${nextId}`
+            );
+
+            const payload = messageDetail.data.payload;
+            let bodyData = "";
+
+            if (payload?.parts) {
+              const textPart = payload.parts.find((p: any) => p.mimeType === "text/plain");
+              const htmlPart = payload.parts.find((p: any) => p.mimeType === "text/html");
+              if (textPart?.body?.data) {
+                bodyData = Buffer.from(textPart.body.data, "base64").toString("utf8");
+              } else if (htmlPart?.body?.data) {
+                bodyData = Buffer.from(htmlPart.body.data, "base64").toString("utf8");
+              }
+            } else if (payload?.body?.data) {
+              bodyData = Buffer.from(payload.body.data, "base64").toString("utf8");
+            }
+
+            emails.push({ id: nextId, body: bodyData });
+          } catch (error) {
+            console.error("Error fetching message", nextId, error);
+          }
+        }
+      });
+
+      await Promise.all(workers);
 
       const dedupedEmails = Array.from(new Map(emails.map((email) => [email.id, email])).values());
       console.log(`[Gmail] fetched ${dedupedEmails.length} unique emails`);

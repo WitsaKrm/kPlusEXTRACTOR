@@ -6,6 +6,50 @@ import DashboardLayout from "./components/DashboardLayout";
 import { fetchKPlusEmails } from "@/lib/gmail";
 import { parseKPlusEmail, Transaction } from "@/lib/kplusParser";
 
+function SessionExpiredLoginCard() {
+  return (
+    <div style={{
+      minHeight: "100vh",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      background: "var(--background-color)",
+      padding: 24,
+    }}>
+      <div style={{
+        maxWidth: 520,
+        width: "100%",
+        background: "white",
+        borderRadius: 18,
+        padding: 28,
+        boxShadow: "0 24px 48px rgba(15, 23, 42, 0.12)",
+        textAlign: "center",
+      }}>
+        <h2 style={{ margin: "0 0 12px", color: "var(--text-primary)" }}>Session expired</h2>
+        <p style={{ margin: "0 0 20px", color: "var(--text-secondary)" }}>
+          Your Google session is no longer valid. Please sign in again to continue.
+        </p>
+        <button
+          onClick={() => {
+            window.location.href = "/api/auth/signin?callbackUrl=%2F";
+          }}
+          style={{
+            background: "var(--sidebar-active)",
+            color: "white",
+            border: "none",
+            borderRadius: 10,
+            padding: "12px 18px",
+            fontWeight: 700,
+            cursor: "pointer",
+          }}
+        >
+          Sign in with Google
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default async function Home({
   searchParams,
 }: {
@@ -22,7 +66,7 @@ export default async function Home({
   let fetchedEmailCount = 0;
 
   if (!session || !(session as any)?.accessToken) {
-    redirect("/api/auth/signin?callbackUrl=%2F");
+    return <SessionExpiredLoginCard />;
   }
 
   try {
@@ -49,7 +93,7 @@ export default async function Home({
     });
   } catch (error) {
     console.error("Gmail fetch failed, redirecting to sign-in:", error);
-    redirect("/api/auth/signin?callbackUrl=%2F");
+    return <SessionExpiredLoginCard />;
   }
 
   return (

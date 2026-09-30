@@ -1,9 +1,11 @@
 "use client";
 
 import { signIn, signOut, useSession } from "next-auth/react";
+import { useToast } from "../providers";
 
 export default function LoginButton() {
   const { data: session, status } = useSession();
+  const { showToast } = useToast();
 
   if (status === "loading") {
     return <div className="loading"></div>;
@@ -24,7 +26,13 @@ export default function LoginButton() {
         <p style={{ color: "var(--text-secondary)", marginBottom: "2rem" }}>
           Please sign in with your Google account to analyze your transaction emails.
         </p>
-        <button className="btn" onClick={() => signIn("google")}>
+        <button
+          className="btn"
+          onClick={() => {
+            showToast("Please sign in to continue", "info");
+            signIn("google");
+          }}
+        >
           Sign in with Google
         </button>
       </div>
