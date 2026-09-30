@@ -67,8 +67,8 @@ export async function fetchKPlusEmails(accessToken: string, forceRefresh: boolea
         } catch (err) {
           console.error("Error fetching message", msg.id, err);
         }
-        // 300ms between each request = ~3.3 req/s = ~17 units/s (well under 250 limit)
-        await new Promise((resolve) => setTimeout(resolve, 300));
+        // 100ms between each request for faster loading while staying under Gmail quota limits
+        await new Promise((resolve) => setTimeout(resolve, 100));
       }
 
       // Save to cache
